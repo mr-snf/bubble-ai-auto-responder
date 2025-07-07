@@ -1,0 +1,20 @@
+{
+  "model": "pylon-nlp-v1",
+  "intents": [
+    "invoice_request",
+    "refund_request",
+    "email_change",
+    "password_reset",
+    "account_closure",
+    "feature_request",
+    "bug_report",
+    "subscription_upgrade",
+    "subscription_cancellation",
+    "delivery_status",
+    "payment_issue",
+    "general_inquiry"
+  ],
+  "training_data_path": "../data/sample_queries.json",
+  "accuracy_target": 0.9,
+  "latency_target": 1.0
+}

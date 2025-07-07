@@ -1,0 +1,52 @@
+{
+  "macros": [
+    {
+      "intent": "invoice_request",
+      "response": "Thank you for your request. We have sent your invoice to your registered email address. If you need further assistance, please let us know."
+    },
+    {
+      "intent": "refund_request",
+      "response": "We have received your refund request. Our team will process it within 2-3 business days. You will receive a confirmation email once completed."
+    },
+    {
+      "intent": "email_change",
+      "response": "To change your email address, please provide your new email and we will update your account information."
+    },
+    {
+      "intent": "password_reset",
+      "response": "A password reset link has been sent to your registered email address. Please follow the instructions to reset your password."
+    },
+    {
+      "intent": "account_closure",
+      "response": "We are sorry to see you go. Your account closure request has been received and will be processed within 24 hours."
+    },
+    {
+      "intent": "feature_request",
+      "response": "Thank you for your feedback! We have logged your feature request and our product team will review it."
+    },
+    {
+      "intent": "bug_report",
+      "response": "Thank you for reporting this issue. Our technical team will investigate and update you as soon as possible."
+    },
+    {
+      "intent": "subscription_upgrade",
+      "response": "Your request to upgrade your subscription has been received. We will process it and notify you once complete."
+    },
+    {
+      "intent": "subscription_cancellation",
+      "response": "Your subscription cancellation request has been received. You will receive a confirmation email shortly."
+    },
+    {
+      "intent": "delivery_status",
+      "response": "Your order is being processed. You will receive a tracking link once it ships."
+    },
+    {
+      "intent": "payment_issue",
+      "response": "We have received your payment issue report. Our billing team will review and get back to you soon."
+    },
+    {
+      "intent": "general_inquiry",
+      "response": "Thank you for reaching out. How can we assist you today?"
+    }
+  ]
+}
