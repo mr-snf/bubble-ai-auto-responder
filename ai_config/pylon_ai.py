@@ -7,7 +7,7 @@ import instructor
 from openai import OpenAI
 import numpy as np
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY", "")
 client = instructor.from_openai(OpenAI(api_key=openai_api_key))
 
 
