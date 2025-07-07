@@ -19,7 +19,6 @@ intents = [
     "general_inquiry",
 ]
 
-# Example templates for each intent
 intent_templates = {
     "invoice_request": [
         "Can I get a copy of my invoice?",
@@ -167,7 +166,7 @@ intent_templates = {
     ],
 }
 
-# Substitution options for placeholders
+
 substitutions = {
     "invoice": ["invoice", "bill", "statement", "receipt"],
     "order": ["order", "purchase", "item", "package"],
@@ -182,13 +181,11 @@ substitutions = {
     "support": ["support", "helpdesk", "customer service"],
 }
 
-# Polite prefixes and suffixes
 prefixes = ["", "Hi, ", "Hello, ", "Hey team, ", "Greetings, "]
 suffixes = ["", " Thanks!", " Please help.", " ASAP.", " Thank you."]
 
-# Minor mutation functions for diversity
 mutation_funcs = [
-    lambda s: s,  # original
+    lambda s: s,
     lambda s: s.lower(),
     lambda s: s.upper(),
     lambda s: s.capitalize(),
@@ -198,11 +195,9 @@ mutation_funcs = [
 
 
 def generate_combinations(template, substitutions):
-    # Find all words in the template that are keys in substitutions
     keys = [k for k in substitutions if k in template]
     if not keys:
         return [template]
-    # For each key, get all possible substitutions
     from itertools import product
 
     options = [substitutions[k] for k in keys]
@@ -217,7 +212,6 @@ def generate_combinations(template, substitutions):
 
 
 def main():
-    # Backup old queries if file exists
     if os.path.exists("data/sample_queries.json"):
         with open("data/sample_queries.json") as f:
             old_queries = json.load(f)
@@ -230,7 +224,6 @@ def main():
     queries = []
     queries_per_intent = defaultdict(list)
 
-    # 1. Old random logic (preserved)
     samples_per_intent = 2000 // len(intents)
     for intent in intents:
         templates = intent_templates[intent]
@@ -244,7 +237,6 @@ def main():
             queries.append(q)
             queries_per_intent[intent].append(q)
 
-    # 2. Systematic combinatorial generation
     for intent in intents:
         for template in intent_templates[intent]:
             combos = generate_combinations(template, substitutions)
@@ -258,12 +250,10 @@ def main():
                             queries.append(q)
                             queries_per_intent[intent].append(q)
 
-    # 3. Add old queries (if any)
     for q in old_queries:
         queries.append(q)
         queries_per_intent[q["intent"]].append(q)
 
-    # 4. Deduplicate
     seen = set()
     unique_queries = []
     unique_per_intent = defaultdict(list)
@@ -274,14 +264,11 @@ def main():
             unique_queries.append(q)
             unique_per_intent[q["intent"]].append(q)
 
-    # 5. If more than 2000, randomly sample 2000
     if len(unique_queries) > 2000:
         unique_queries = random.sample(unique_queries, 2000)
-        # Rebuild per-intent counts
         unique_per_intent = defaultdict(list)
         for q in unique_queries:
             unique_per_intent[q["intent"]].append(q)
-    # 6. If fewer, augment with minor mutations
     elif len(unique_queries) < 2000:
         needed = 2000 - len(unique_queries)
         extra = []
@@ -297,11 +284,9 @@ def main():
             if len(extra) >= needed:
                 break
         unique_queries.extend(extra[:needed])
-        # Update per-intent
         for q in extra[:needed]:
             unique_per_intent[q["intent"]].append(q)
 
-    # 7. Output
     with open("data/sample_queries.json", "w") as f:
         json.dump(unique_queries, f, indent=2)
     print(
