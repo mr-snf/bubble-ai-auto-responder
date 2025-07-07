@@ -1,14 +1,18 @@
 import json
+from configs.config import MAX_TOKENS, TEMPERATURE, TOP_P, ENDPOINT, MODEL
 from intercom_integration.send_reply import send_reply
 from pydantic import BaseModel, Field
 from typing import Literal
 import os
-import instructor
 from openai import OpenAI
 import numpy as np
 
-openai_api_key = os.getenv("OPENAI_API_KEY", "")
-client = instructor.from_openai(OpenAI(api_key=openai_api_key))
+token = os.environ["GITHUB_TOKEN"]
+
+client = OpenAI(
+    base_url=ENDPOINT,
+    api_key=token,
+)
 
 
 class ClassificationResponse(BaseModel):
@@ -34,8 +38,7 @@ class ClassificationResponse(BaseModel):
 
 
 def get_embedding(text: str) -> list:
-    client = OpenAI(api_key=openai_api_key)
-    response = client.embeddings.create(input=text, model="text-embedding-ada-002")
+    response = client.embeddings.create(input=text, model=MODEL)
     return response.data[0].embedding
 
 
@@ -68,7 +71,6 @@ class PylonAI:
                 self.sample_embeddings = json.load(f)
 
     def classify_intent(self, query: str) -> str:
-        # Embedding-based semantic search
         if self.sample_embeddings:
             user_emb = np.array(get_embedding(query))
             best_score = -1
@@ -82,17 +84,20 @@ class PylonAI:
                     best_score = score
                     best_intent = item["intent"]
             return best_intent if best_intent is not None else "general_inquiry"
-        # Fallback to OpenAI classification or keyword matching
+
         try:
             response = client.chat.completions.create(
-                model="gpt-4o",
-                response_model=ClassificationResponse,
+                model=MODEL,
+                temperature=TEMPERATURE,
+                top_p=TOP_P,
+                max_tokens=MAX_TOKENS,
                 messages=[
                     {
                         "role": "system",
                         "content": (
                             "Classify the following customer support query into one of the intents: "
                             + ", ".join(self.intents)
+                            + ". Respond ONLY with the intent label."
                         ),
                     },
                     {
@@ -101,7 +106,13 @@ class PylonAI:
                     },
                 ],
             )
-            return response.intent
+            content = (
+                response.choices[0].message.content
+                if response.choices and response.choices[0].message
+                else None
+            )
+            intent = content.strip() if content else "general_inquiry"
+            return intent
         except Exception as e:
             print(f"Error with OpenAI intent classification: {e}")
             for intent in self.intents:
@@ -110,7 +121,6 @@ class PylonAI:
             return "general_inquiry"
 
     def generate_response(self, intent: str, user_query: str = "") -> str:
-        # Try to generate a detailed response using OpenAI
         try:
             with open("fallback_macros/intercom_macros.json") as f:
                 macros = json.load(f)["macros"]
@@ -127,11 +137,16 @@ class PylonAI:
                 f"A user asked: '{user_query}'. "
                 f"The intent is '{intent}'. "
                 f"Here is a suggested response: '{macro_response}'. "
-                f"Please write a detailed, helpful, and friendly reply in 150-200 words, expanding on the macro if possible."
+                f"Please write a detailed, helpful, and friendly reply in more than 150 words, "
+                f"but less than 200 words, "
+                f"expanding on the macro if possible. "
+                f"Please do not include any other text in your response."
             )
-            client = OpenAI(api_key=openai_api_key)
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model=MODEL,
+                temperature=TEMPERATURE,
+                top_p=TOP_P,
+                max_tokens=MAX_TOKENS,
                 messages=[
                     {
                         "role": "system",
@@ -153,7 +168,6 @@ class PylonAI:
                 return macro_response
         except Exception as e:
             print(f"Error with OpenAI response generation: {e}")
-            # Fallback to macro
             with open("fallback_macros/intercom_macros.json") as f:
                 macros = json.load(f)["macros"]
             for macro in macros:
